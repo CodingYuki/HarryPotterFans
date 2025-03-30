@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法小游戏 - 哈利波特粉丝网站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .game-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        #gameCanvas {
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            margin: 1rem auto;
+            background-color: #f8f9fa;
+        }
+
+        .controls {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            color: #2c3e50;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .start-btn {
+            padding: 1rem 2rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 1rem;
+        }
+
+        .start-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">霍格沃茨魔法学校</div>
+            <ul>
+                <li><a href="{{ url_for('quiz') }}">哈利波特问答</a></li>
+                <li><a href="{{ url_for('sorting_hat') }}">分院帽测试</a></li>
+                <li><a href="{{ url_for('game') }}">魔法小游戏</a></li>
+                <li><a href="{{ url_for('school_song') }}">霍格沃茨校歌</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <h1>魔法小游戏</h1>
+            <div class="controls">
+                <p>使用方向键移动，空格键施放魔法</p>
+            </div>
+            <div class="score">得分：<span id="score">0</span></div>
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+            <button class="start-btn" id="startBtn">开始游戏</button>
+        </div>
+    </main>
+
+    <div class="game-over" id="gameOver">
+        <h2>游戏结束</h2>
+        <p>最终得分：<span id="finalScore">0</span></p>
+        <button class="start-btn" onclick="restartGame()">重新开始</button>
+    </div>
+
+    <footer>
+        <p>© 2024 哈利波特粉丝网站 - 献给所有魔法世界的爱好者</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const gameOverDiv = document.getElementById('gameOver');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        let gameLoop;
+        let score = 0;
+        let player = {
+            x: 50,
+            y: 200,
+            width: 30,
+            height: 30,
+            speed: 5,
+            jumping: false,
+            velocityY: 0,
+            gravity: 0.5
+        };
+
+        let obstacles = [];
+        let spells = [];
+
+        function startGame() {
+            score = 0;
+            scoreElement.textContent = score;
+            player.y = 200;
+            player.velocityY = 0;
+            obstacles = [];
+            spells = [];
+            gameOverDiv.style.display = 'none';
+            startBtn.style.display = 'none';
+            gameLoop = setInterval(update, 1000/60);
+        }
+
+        function update() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 更新玩家位置
+            if (keys.ArrowLeft) player.x -= player.speed;
+            if (keys.ArrowRight) player.x += player.speed;
+
+            // 重力
+            player.velocityY += player.gravity;
+            player.y += player.velocityY;
+
+            // 地面碰撞检测
+            if (player.y > canvas.height - player.height) {
+                player.y = canvas.height - player.height;
+                player.velocityY = 0;
+                player.jumping = false;
+            }
+
+            // 绘制玩家
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // 更新和绘制魔法
+            spells.forEach((spell, index) => {
+                spell.x += 10;
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(spell.x, spell.y, 10, 5);
+                if (spell.x > canvas.width) spells.splice(index, 1);
+            });
+
+            // 随机生成障碍物
+            if (Math.random() < 0.02) {
+                obstacles.push({
+                    x: canvas.width,
+                    y: canvas.height - 40,
+                    width: 20,
+                    height: 40
+                });
+            }
+
+            // 更新和绘制障碍物
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= 5;
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                if (obstacle.x < -obstacle.width) obstacles.splice(index, 1);
+
+                // 碰撞检测
+                if (checkCollision(player, obstacle)) {
+                    gameOver();
+                }
+            });
+        }
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function gameOver() {
+            clearInterval(gameLoop);
+            gameOverDiv.style.display = 'block';
+            finalScoreElement.textContent = score;
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // 键盘控制
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'ArrowUp' && !player.jumping) {
+                player.velocityY = -12;
+                player.jumping = true;
+            }
+            if (e.key === ' ') {
+                spells.push({
+                    x: player.x + player.width,
+                    y: player.y + player.height/2
+                });
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        startBtn.addEventListener('click', startGame);
+    </script>
+</body>
+</html> 

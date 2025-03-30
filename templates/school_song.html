@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>霍格沃茨校歌 - 哈利波特粉丝网站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .song-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .lyrics {
+            margin: 2rem 0;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .lyrics p {
+            margin: 1rem 0;
+        }
+
+        .audio-player {
+            margin: 2rem 0;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .translation {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #e8f4f8;
+            border-radius: 5px;
+        }
+
+        .play-btn {
+            padding: 1rem 2rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 1rem;
+        }
+
+        .play-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">霍格沃茨魔法学校</div>
+            <ul>
+                <li><a href="{{ url_for('quiz') }}">哈利波特问答</a></li>
+                <li><a href="{{ url_for('sorting_hat') }}">分院帽测试</a></li>
+                <li><a href="{{ url_for('game') }}">魔法小游戏</a></li>
+                <li><a href="{{ url_for('school_song') }}">霍格沃茨校歌</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="song-container">
+            <h1>霍格沃茨校歌</h1>
+            
+            <div class="lyrics">
+                <h2>英文歌词</h2>
+                <p>Hogwarts, Hogwarts, Hoggy Warty Hogwarts,</p>
+                <p>Teach us something please,</p>
+                <p>Whether we be old and bald,</p>
+                <p>Or young with scabby knees,</p>
+                <p>Our heads could do with filling,</p>
+                <p>With some interesting stuff,</p>
+                <p>For now they're bare and full of air,</p>
+                <p>Dead flies and bits of fluff,</p>
+                <p>So teach us things worth knowing,</p>
+                <p>Bring back what we've forgot,</p>
+                <p>Just do your best, we'll do the rest,</p>
+                <p>And learn until our brains all rot.</p>
+            </div>
+
+            <div class="translation">
+                <h2>中文翻译</h2>
+                <p>霍格沃茨，霍格沃茨，霍格沃茨，霍格沃茨，</p>
+                <p>请教给我们一些知识，</p>
+                <p>无论我们是秃头还是年轻，</p>
+                <p>膝盖上长满疥疮，</p>
+                <p>我们的头脑需要充实，</p>
+                <p>用一些有趣的东西，</p>
+                <p>因为现在它们空空如也，</p>
+                <p>只有死苍蝇和绒毛，</p>
+                <p>所以教给我们值得知道的东西，</p>
+                <p>带回我们遗忘的记忆，</p>
+                <p>尽你所能，我们会做其余的事，</p>
+                <p>学习直到我们的大脑腐烂。</p>
+            </div>
+
+            <audio class="audio-player" controls>
+                <source src="{{ url_for('static', filename='audio/hogwarts-song.mp3') }}" type="audio/mpeg">
+                您的浏览器不支持音频播放。
+            </audio>
+
+            <button class="play-btn" onclick="playSong()">播放校歌</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 哈利波特粉丝网站 - 献给所有魔法世界的爱好者</p>
+    </footer>
+
+    <script>
+        function playSong() {
+            const audio = document.querySelector('.audio-player');
+            audio.play();
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哈利波特问答 - 哈利波特粉丝网站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .question {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            padding: 1rem;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .option:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+        }
+
+        .result {
+            text-align: center;
+            font-size: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .next-btn {
+            display: block;
+            margin: 2rem auto;
+            padding: 1rem 2rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .next-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">霍格沃茨魔法学校</div>
+            <ul>
+                <li><a href="{{ url_for('quiz') }}">哈利波特问答</a></li>
+                <li><a href="{{ url_for('sorting_hat') }}">分院帽测试</a></li>
+                <li><a href="{{ url_for('game') }}">魔法小游戏</a></li>
+                <li><a href="{{ url_for('school_song') }}">霍格沃茨校歌</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="quiz-container">
+            <h1>哈利波特知识问答</h1>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="score" id="score">得分：0</div>
+            <button class="next-btn" id="next-btn">下一题</button>
+            <div class="result" id="result"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 哈利波特粉丝网站 - 献给所有魔法世界的爱好者</p>
+    </footer>
+
+    <script>
+        let currentQuestion = null;
+        let score = 0;
+        let questionsAnswered = 0;
+
+        async function loadQuestion() {
+            const response = await fetch('/api/quiz-question');
+            currentQuestion = await response.json();
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            document.getElementById('question').textContent = currentQuestion.question;
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('div');
+                button.className = 'option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (selectedIndex === currentQuestion.correct) {
+                score++;
+            }
+            questionsAnswered++;
+            document.getElementById('score').textContent = `得分：${score}/${questionsAnswered}`;
+            
+            if (questionsAnswered >= 10) {
+                showResult();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function showResult() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `测试完成！你的最终得分是：${score}/${questionsAnswered}`;
+            document.getElementById('options').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        document.getElementById('next-btn').onclick = loadQuestion;
+
+        // 开始加载第一个问题
+        loadQuestion();
+    </script>
+</body>
+</html> 

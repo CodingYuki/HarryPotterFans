@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分院帽测试 - 哈利波特粉丝网站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .sorting-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .hat-image {
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+            background-image: url('/static/images/sorting-hat.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .question {
+            font-size: 1.5rem;
+            margin: 2rem 0;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .option {
+            padding: 1rem;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .result {
+            display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .house-image {
+            width: 150px;
+            height: 150px;
+            margin: 1rem auto;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .gryffindor { background-color: #740001; color: white; }
+        .ravenclaw { background-color: #0e1a40; color: white; }
+        .hufflepuff { background-color: #ecb939; color: black; }
+        .slytherin { background-color: #1a472a; color: white; }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #3498db;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">霍格沃茨魔法学校</div>
+            <ul>
+                <li><a href="{{ url_for('quiz') }}">哈利波特问答</a></li>
+                <li><a href="{{ url_for('sorting_hat') }}">分院帽测试</a></li>
+                <li><a href="{{ url_for('game') }}">魔法小游戏</a></li>
+                <li><a href="{{ url_for('school_song') }}">霍格沃茨校歌</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="sorting-container">
+            <h1>分院帽测试</h1>
+            <div class="hat-image"></div>
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="result" id="result"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 哈利波特粉丝网站 - 献给所有魔法世界的爱好者</p>
+    </footer>
+
+    <script>
+        let currentQuestion = null;
+        let questionCount = 0;
+        let houseScores = {
+            Gryffindor: 0,
+            Ravenclaw: 0,
+            Hufflepuff: 0,
+            Slytherin: 0
+        };
+
+        async function loadQuestion() {
+            const response = await fetch('/api/sorting-hat-question');
+            currentQuestion = await response.json();
+            displayQuestion();
+            updateProgress();
+        }
+
+        function displayQuestion() {
+            document.getElementById('question').textContent = currentQuestion.question;
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('div');
+                button.className = 'option';
+                button.textContent = option.text;
+                button.onclick = () => selectOption(option.house);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectOption(house) {
+            houseScores[house]++;
+            questionCount++;
+            
+            if (questionCount >= 5) {
+                showResult();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (questionCount / 5) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function showResult() {
+            const resultDiv = document.getElementById('result');
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.style.display = 'none';
+            
+            // 找出得分最高的学院
+            const maxScore = Math.max(...Object.values(houseScores));
+            const house = Object.keys(houseScores).find(key => houseScores[key] === maxScore);
+            
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${house.toLowerCase()}`;
+            resultDiv.innerHTML = `
+                <h2>分院帽的决定是...</h2>
+                <div class="house-image" style="background-image: url('/static/images/${house.toLowerCase()}.png')"></div>
+                <h3>${house}学院！</h3>
+                <p>欢迎加入${house}学院！</p>
+            `;
+        }
+
+        // 开始加载第一个问题
+        loadQuestion();
+    </script>
+</body>
+</html> 
